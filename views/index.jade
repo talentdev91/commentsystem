@@ -4,6 +4,9 @@ html
 		title React Server Side Rendering Example
 	body
 		div(id='react-root')!= react
+		fb:login-button(scope='public_profile', onlogin='checkLoginState();')
+
+		div(id='status')
 
 		script(src='https://fb.me/react-with-addons-0.13.1.js')
 		script(src='https://fb.me/JSXTransformer-0.13.1.js')
