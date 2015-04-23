@@ -9,7 +9,7 @@ var components = require('./public/components.jsx');
 var orm = require('./modules/orm');
 var HelloMessage = React.createFactory(components.HelloMessage);
 
-app.set('port', (process.env.PORT || 8080));
+app.set('port', (process.env.PORT || 5000));
 app.engine('jade', require('jade').__express);
 app.set('view engine', 'jade');
 
