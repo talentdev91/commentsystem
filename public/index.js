@@ -3,7 +3,7 @@ function statusChangeCallback(response) {
     console.log('statusChangeCallback');
     console.log(response);
     if (response.status === 'connected') {
-        testAPI();
+        console.log('connected');
     } else if (response.status === 'not_authorized') {
         document.getElementById('status').innerHTML = 'Please log ' +
             'into this app.';
@@ -11,6 +11,10 @@ function statusChangeCallback(response) {
         document.getElementById('status').innerHTML = 'Please log ' +
             'into Facebook.';
     }
+}
+
+function loginToFacebook() {
+    FB.login(statusChangeCallback);
 }
 
 window.fbAsyncInit = function() {
