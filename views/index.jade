@@ -2,13 +2,20 @@ doctype
 html
 	head
 		title React Server Side Rendering Example
+		link(href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css', rel='stylesheet')
+		link(href='/css/style.css', rel='stylesheet')
+
 	body
 		div(id='react-root')!= react
-		button(id='facebook-login', onClick='loginToFacebook()')
+		div(id='fb-root')
+		
+		script(type='text/javascript')!= staticContent
 
-		script(src='https://fb.me/react-with-addons-0.13.1.js')
-		script(src='https://fb.me/JSXTransformer-0.13.1.js')
-		script(src='https://code.jquery.com/jquery-2.1.3.js')
+		script(src='//code.jquery.com/jquery-2.1.3.js')
+		script(src='/lib/velocity/velocity.min.js')
+		script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js')
+		script(src='//fb.me/react-with-addons-0.13.1.js')
+		script(src='//fb.me/JSXTransformer-0.13.1.js')
 
-		script(src='/index.js')
-		script(src='/components.jsx', type='text/jsx')
+		script(src='/js/index.js')
+		script(src='/components.js', type='text/javascript')
