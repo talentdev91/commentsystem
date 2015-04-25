@@ -1,19 +1,28 @@
 var isNode = typeof module !== 'undefined' && module.exports
 , React = isNode ? require('react/addons') : window.React
 
+if(isNode) {
+    var moment = require('moment');
+}
+
 var Comments = React.createClass({displayName: "Comments",
     getInitialState: function () {
         return {
             commentData: {},
             loggedInStatus: (this.props.commentData.facebookID) ? this.props.commentData.facebookID : false,
-            userData: {}
+            userData: {},
+            disabledSubmitButton: true,
+            comments: []
         }
     },
 
     loadServerData: function() {
         $.get('/discussions', function(result) {
             if (this.isMounted()) {
-                this.setState({commentData: result})
+                this.setState({
+                    commentData: result,
+                    comments: result.discussion.comments
+                })
             }
         }.bind(this))
     },
@@ -26,27 +35,100 @@ var Comments = React.createClass({displayName: "Comments",
     },
 
     componentDidMount: function () {
-        this.intervalID = setTimeout(this.loadServerData, 3000)
+        this.intervalID = setInterval(this.loadServerData, 5000)
+    },
+
+    componentWillMount: function() {
+        this.setState({
+            commentData: this.props.commentData,
+            comments: this.props.commentData.discussion.comments
+        });
+    },
+
+    addComment: function(commentData) {
+        var comments = this.state.comments;
+
+        var commentObject = {
+            author_id: parseInt(this.state.loggedInStatus),
+            author: this.state.userData.name,
+            discussion: commentData,
+            public: true,
+            deleted: false,
+            datetime: Date.now()
+        };
+        comments.push(commentObject);
+        this.setState({
+            comments: comments
+        });
+
+        $.post('/addComment/' + this.state.commentData.discussion.id, commentObject, function(result) {
+            console.log(result);
+            //TODO catch errors
+        });
+        
+    },
+
+    submitComment: function(event) {
+        event.preventDefault();
+        var textarea = React.findDOMNode(this.refs.textarea);
+        if(textarea.value === '') return;
+        this.addComment(textarea.value);
+        textarea.value = '';
+    },
+
+
+    textareaChanged: function() {
+        var textarea = React.findDOMNode(this.refs.textarea);
+        if(textarea.value.length > 3) {
+            this.setState({
+                disabledSubmitButton: false
+            });
+        } else {
+            this.setState({
+                disabledSubmitButton: true
+            });
+        }
+    },
+
+    textarea: function() {
+        var disabled = (this.state.disabledSubmitButton) ? "disabled" : "";
+        return (
+            React.createElement("div", {ref: "textareaHolder", className: "comment-box-holder main"}, 
+                React.createElement("h3", null, "Share your thoughts"), 
+                React.createElement("textarea", {
+                    ref: "textarea", 
+                    placeholder: "Enter your comment here...", 
+                    className: "comment-box", 
+                    onChange: this.textareaChanged}), 
+                React.createElement("button", {onClick: this.submitComment, type: "button", className: "btn btn-default submit-button " + disabled}, 
+                    "Submit"
+                )
+            )
+        )
     },
 
     render: function() {
         var depth = 0;
-        var discussion = this.state.commentData.discussion ? this.state.commentData.discussion : this.props.commentData.discussion;
-        var comments = discussion.comments.map(function(comment, index) {
+        var discussion = this.state.commentData.discussion;
+        var comments = this.state.comments.map(function(comment, index) {
             return React.createElement(Comment, {key: index, data: comment, depth: depth, loggedIn: this.state.loggedInStatus, userData: this.state.userData})
         }.bind(this));
 
         return (
             React.createElement("div", {className: "container"}, 
                 React.createElement(NavBar, {logInCallback: this.loggedIn, loggedInStatus: this.state.loggedInStatus}), 
-                React.createElement("h1", null, discussion.title), 
-                React.createElement("span", null, discussion.discussion), 
+                React.createElement("div", {className: "title-block"}, 
+                    React.createElement("h1", null, discussion.title), 
+                    React.createElement("span", {className: "text"}, discussion.discussion)
+                ), 
                 React.createElement("div", {className: "comments-holder"}, 
                     comments
-                )
+                ), 
+                this.textarea()
             )
         )
     }
+
 });
 
 var NavBar = React.createClass({displayName: "NavBar",
@@ -160,6 +242,7 @@ var Comment = React.createClass({displayName: "Comment",
             author: this.props.userData.name,
             discussion: commentData,
             public: this.state.commentIsPublic,
+            datetime: Date.now(),
             deleted: false
         };        
         comments.push(commentObject);
@@ -252,6 +335,7 @@ var Comment = React.createClass({displayName: "Comment",
                 deleteControl
             )
         );
+        var time = moment(this.props.data.datetime).fromNow();
         var authorProfilePicture = "http://graph.facebook.com/v2.3/" + this.props.data.author_id + "/picture";
         return (
             React.createElement("div", null, 
@@ -261,7 +345,7 @@ var Comment = React.createClass({displayName: "Comment",
                 React.createElement("div", {className: "comment-text"}, 
                     React.createElement("span", {className: "meta-data"}, 
                         React.createElement("span", {className: "author"}, this.props.data.author), 
-                        React.createElement("span", {className: "time"}, "1 hour ago"), 
+                        React.createElement("span", {className: "time"}, time), 
                         loggedInControls
                     ), 
                     React.createElement("div", {className: "innerHTML", dangerouslySetInnerHTML: {__html: this.props.data.discussion}}), 
@@ -278,14 +362,16 @@ var Comment = React.createClass({displayName: "Comment",
     render: function() {
         var depth = this.props.depth + 1;
         var comments = this.state.comments ? this.state.comments.map(function(comment, index) {
+            if(!comment.public 
+                && this.props.data.author_id !== parseInt(this.props.loggedIn)
+                && comment.author_id !== parseInt(this.props.loggedIn)) return '';
             return React.createElement(Comment, {key: index, data: comment, depth: depth, loggedIn: this.props.loggedIn, userData: this.props.userData})
         }.bind(this)) : "";
         var classString = "single-comment depth" + depth;
 
-        var discussion = (  this.state.deleted === false && 
-                            this.props.data.public === true  ) ? this.discussion() :
-                         (  this.state.deleted === true && 
-                            this.props.data.public === true  ) ? this.deletedDiscussion() : "";
+        var discussion = (  this.state.deleted === true  ) 
+                            ? this.deletedDiscussion() 
+                            : this.discussion();
 
         return (
             React.createElement("div", {className: classString}, 

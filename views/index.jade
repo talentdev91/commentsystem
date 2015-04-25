@@ -3,17 +3,18 @@ html
 	head
 		title React Server Side Rendering Example
 		link(href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css', rel='stylesheet')
+		link(href='http://fonts.googleapis.com/css?family=Lato:400,700', rel='stylesheet', type='text/css')
 		link(href='/css/style.css', rel='stylesheet')
 
 	body
 		div(id='react-root')!= react
 		div(id='fb-root')
-		
+
 		script(type='text/javascript')!= staticContent
 
 		script(src='//code.jquery.com/jquery-2.1.3.js')
 		script(src='/lib/velocity/velocity.min.js')
-		script(src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js')
+		script(src='/lib/moment/min/moment.min.js')
 		script(src='//fb.me/react-with-addons-0.13.1.js')
 		script(src='//fb.me/JSXTransformer-0.13.1.js')
 

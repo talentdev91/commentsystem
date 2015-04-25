@@ -12,6 +12,7 @@
   ],
   "dependencies": {
     "bootstrap": "~3.3.4",
-    "velocity": "~1.2.2"
+    "velocity": "~1.2.2",
+    "moment": "~2.10.2"
   }
 }
