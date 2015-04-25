@@ -39,7 +39,7 @@ app.get('/', function(req, res) {
         var userId = (signedRequest) ? signedRequest.user_id : false;
     }
 
-    orm.getDiscussion(17, function(data) {
+    orm.getDiscussion(1, function(data) {
         data.facebookID = userId;
         res.render('index', {
             react: React.renderToString(Comments({
@@ -51,7 +51,7 @@ app.get('/', function(req, res) {
 })
 
 app.get('/discussions', function(req, res) {
-    var discussionID = 17;
+    var discussionID = 1;
     orm.getDiscussion(discussionID, function(data) {
         res.json(data);
     });

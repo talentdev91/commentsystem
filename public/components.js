@@ -113,7 +113,11 @@ var Comments = React.createClass({displayName: "Comments",
         var comments = this.state.comments.map(function(comment, index) {
             return React.createElement(Comment, {key: index, data: comment, depth: depth, loggedIn: this.state.loggedInStatus, userData: this.state.userData})
         }.bind(this));
-
+        var textarea = (this.state.loggedInStatus) ? this.textarea() : (
+            React.createElement("h3", {className: "comment-box-holder main"}, "Please login with Facebook to comment.")
+        );
+        var authorImage =  "http://graph.facebook.com/v2.3/" + discussion.author_id + "/picture"
+        var time = moment(discussion.datetime).fromNow();
         return (
             React.createElement("div", {className: "container"}, 
                 React.createElement(NavBar, {logInCallback: this.loggedIn, loggedInStatus: this.state.loggedInStatus}), 
@@ -121,10 +125,15 @@ var Comments = React.createClass({displayName: "Comments",
                     React.createElement("h1", null, discussion.title), 
                     React.createElement("span", {className: "text"}, discussion.discussion)
                 ), 
+                React.createElement("span", {className: "user-meta"}, 
+                    React.createElement("img", {className: "picture", src: authorImage}), 
+                    React.createElement("span", {className: "name"}, discussion.author, ","), 
+                    React.createElement("span", {className: "time"}, time)
+                ), 
                 React.createElement("div", {className: "comments-holder"}, 
                     comments
                 ), 
-                this.textarea()
+                textarea
             )
         )
     }
@@ -158,6 +167,8 @@ var NavBar = React.createClass({displayName: "NavBar",
                 this.props.logInCallback(user);
                 this.setState({
                     userName: user.name,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
                     loggedInStatus: user.id,
                     userPicture: "http://graph.facebook.com/v2.3/" + user.id + "/picture"
                 });
@@ -185,7 +196,9 @@ var NavBar = React.createClass({displayName: "NavBar",
         var socialAccount = (
             React.createElement("div", {ref: "userInfo", className: "user-info"}, 
                 React.createElement("img", {className: "picture", src: this.state.userPicture}), 
-                React.createElement("span", {className: "name"}, this.state.userName)
+                React.createElement("span", {className: "name"}, 
+                    React.createElement("span", {className: "first-name"}, this.state.firstName), " ", React.createElement("span", {className: "last-name"}, this.state.lastName)
+                )
             )
         );
 

@@ -113,7 +113,11 @@ var Comments = React.createClass({
         var comments = this.state.comments.map(function(comment, index) {
             return <Comment key={index} data={comment} depth={depth} loggedIn={this.state.loggedInStatus} userData={this.state.userData} />
         }.bind(this));
-
+        var textarea = (this.state.loggedInStatus) ? this.textarea() : (
+            <h3 className="comment-box-holder main">Please login with Facebook to comment.</h3>
+        );
+        var authorImage =  "http://graph.facebook.com/v2.3/" + discussion.author_id + "/picture"
+        var time = moment(discussion.datetime).fromNow();
         return (
             <div className="container">
                 <NavBar logInCallback={this.loggedIn} loggedInStatus={this.state.loggedInStatus} />
@@ -121,10 +125,15 @@ var Comments = React.createClass({
                     <h1>{discussion.title}</h1>
                     <span className="text">{discussion.discussion}</span>
                 </div>
+                <span className="user-meta">
+                    <img className="picture" src={authorImage} />
+                    <span className="name">{discussion.author},</span>
+                    <span className="time">{time}</span>
+                </span>
                 <div className="comments-holder">
                     {comments}
                 </div>
-                {this.textarea()}
+                {textarea}
             </div>
         )
     }
@@ -158,6 +167,8 @@ var NavBar = React.createClass({
                 this.props.logInCallback(user);
                 this.setState({
                     userName: user.name,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
                     loggedInStatus: user.id,
                     userPicture: "http://graph.facebook.com/v2.3/" + user.id + "/picture"
                 });
@@ -185,7 +196,9 @@ var NavBar = React.createClass({
         var socialAccount = (
             <div ref="userInfo" className="user-info">
                 <img className="picture" src={this.state.userPicture} />
-                <span className="name">{this.state.userName}</span>
+                <span className="name">
+                    <span className="first-name">{this.state.firstName}</span> <span className="last-name">{this.state.lastName}</span>
+                </span>
             </div>
         );
 

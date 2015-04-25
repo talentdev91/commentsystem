@@ -26,7 +26,7 @@ button:focus {
 }
 
 .title-block {
-	padding: 30px 20px 50px 20px;
+	padding: 30px 20px 20px 20px;
 }
 
 .title-block h1 {
@@ -144,7 +144,7 @@ button:focus {
 	margin-top: 20px;
 	margin-bottom: 0px;
 	border: none;
-	background: url('../img/header.jpg') repeat;
+	background: #03B7AE;
 }
 
 .navbar-brand {
@@ -152,7 +152,6 @@ button:focus {
 	font-size: 30px;
 	padding-left: 0;
    	color: #fff !important;
-   	text-shadow: 0px 0px 10px rgba(0,0,0,0.5);
 }
 
 .main-nav .facebook-login {
@@ -190,6 +189,54 @@ button:focus {
 	border-radius: 25px;
 	position: relative;
 	left: -25px;
+}
+
+.user-meta {
+	display: block;
+	padding: 10px 20px 20px 20px;
+}
+
+.user-meta .picture {
+	height: 30px;
+	border-radius: 15px;
+}
+
+.user-meta .name {
+	font-weight: bold;
+	margin: 10px;
+	color: #555555;
+}
+
+.user-meta .time {
+	color: #a7a7a7;
+}
+
+@media(max-width: 768px) {
+	.single-comment {
+		padding-left: 5px;
+		padding-top: 0;
+		border-left: 5px solid;
+	}
+	.profile-picture img {
+		height: 40px;
+		width: 40px;
+		border-radius: 20px;
+	}
+	.profile-picture {
+		display: none;
+	}
+	.comment-text {
+		padding: 10px;
+	}
+	.navbar-brand {
+		font-size: 15px;
+	}
+	.last-name {
+		display: none;
+	}
+	.comment-box-holder.main {
+		font-size: 18px !important;
+	}
 }
 
 .depth1  {    border-left-color: #D4D059;    }

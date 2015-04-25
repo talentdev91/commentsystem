@@ -109,7 +109,7 @@ module.exports.addComment = function (parentID, commentObject, callback) {
 	db.serialize(function() {
 
 		db.run("INSERT INTO discussions (parent, discussion, author, author_id, datetime, public) \
-						VALUES ($parent, $discussion, $author, $author_id, datetime(), $public)", {
+						VALUES ($parent, $discussion, $author, $author_id, strftime('%Y-%m-%dT%H:%M:%fZ','now','localtime'), $public)", {
 			$parent: parentID, 
 			$discussion: commentObject.discussion, 
 			$author: commentObject.author, 
