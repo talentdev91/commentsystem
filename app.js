@@ -2,6 +2,7 @@ var WebSocketServer = require("ws").Server;
 var http = require("http");
 var express = require('express');
 var app = express();
+var bodyParser = require('body-parser');
 var React = require('react/addons');
 var components = require('./public/components.js');
 var orm = require('./modules/orm');
@@ -15,6 +16,8 @@ app.engine('jade', require('jade').__express);
 app.set('view engine', 'jade');
 
 app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 orm.init();
 
@@ -36,7 +39,7 @@ app.get('/', function(req, res) {
         var userId = (signedRequest) ? signedRequest.user_id : false;
     }
 
-    orm.getDiscussion(1, function(data) {
+    orm.getDiscussion(17, function(data) {
         data.facebookID = userId;
         res.render('index', {
             react: React.renderToString(Comments({
@@ -48,11 +51,24 @@ app.get('/', function(req, res) {
 })
 
 app.get('/discussions', function(req, res) {
-    var discussionID = 1;
+    var discussionID = 17;
     orm.getDiscussion(discussionID, function(data) {
         res.json(data);
     });
 })
+
+app.get('/deleteComment/:commentID', function(req, res) {
+    orm.deleteComment(req.params.commentID, function(data) {
+        res.json(data);
+    });
+});
+
+app.post('/addComment/:parentID', function(req, res) {
+    console.log(req.params.parentID);
+    orm.addComment(req.params.parentID, req.body, function(data) {
+        res.json(data);
+    });
+});
 
 app.listen(app.get('port'), function() {
     console.log('App Running')

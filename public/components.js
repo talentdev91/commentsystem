@@ -130,8 +130,13 @@ var Comment = React.createClass({displayName: "Comment",
         return {
             openTextArea: false,
             comments: this.props.data.comments,
-            deleted: this.props.data.deleted
+            deleted: this.props.data.deleted,
+            commentIsPublic: true,
+            disabledSubmitButton: true
         }
+    },
+    togglePrivateComment: function() {
+        this.setState({commentIsPublic: !this.state.commentIsPublic});
     },
     textAreaOpen: false,
     replyToggle: function(event) {
@@ -150,23 +155,31 @@ var Comment = React.createClass({displayName: "Comment",
     },
     addComment: function(commentData) {
         var comments = this.state.comments;
-        console.log(this.props.userData);
-        comments.push({
+        var commentObject = {
             author_id: parseInt(this.props.loggedIn),
             author: this.props.userData.name,
             discussion: commentData,
-            public: true,
+            public: this.state.commentIsPublic,
             deleted: false
-        });
+        };        
+        comments.push(commentObject);
         this.setState({
             comments: comments
+        });
+        
+        $.post('/addComment/' + this.props.data.id, commentObject, function(result) {
+            console.log(result);
+            //TODO catch errors
         });
     },
     submitComment: function(event) {
         event.preventDefault();
-        var texarea = React.findDOMNode(this.refs.textarea);
+        var textarea = React.findDOMNode(this.refs.textarea);
+        if(textarea.value === '') return;
+        
         var textareaHolder = React.findDOMNode(this.refs.textareaHolder);
-        this.addComment(texarea.value);
+        this.addComment(textarea.value);
+
         $(textareaHolder).velocity("slideUp", function() {
             this.setState({
                 openTextArea: false
@@ -180,6 +193,10 @@ var Comment = React.createClass({displayName: "Comment",
             this.setState({
                 deleted: true
             });
+            $.get('/deleteComment/' + this.props.data.id, function(result) {
+                console.log(result);
+                //TODO catch errors
+            });
         }
     },
     componentDidUpdate: function() {
@@ -189,12 +206,37 @@ var Comment = React.createClass({displayName: "Comment",
             this.textAreaOpen = true;
         };
     },
+    textareaChanged: function() {
+        var textarea = React.findDOMNode(this.refs.textarea);
+        if(textarea.value.length > 3) {
+            this.setState({
+                disabledSubmitButton: false
+            });
+        } else {
+            this.setState({
+                disabledSubmitButton: true
+            });
+        }
+    },
     textarea: function() {
+        var disabled = (this.state.disabledSubmitButton) ? "disabled" : "";
         return (
             React.createElement("div", {ref: "textareaHolder", className: "comment-box-holder"}, 
-                React.createElement("textarea", {ref: "textarea", placeholder: "Enter your comment here...", className: "comment-box"}), 
-                React.createElement("button", {onClick: this.submitComment, type: "button", className: "btn btn-default submit-button"}, 
+                React.createElement("textarea", {
+                    ref: "textarea", 
+                    placeholder: "Enter your comment here...", 
+                    className: "comment-box", 
+                    onChange: this.textareaChanged}), 
+                React.createElement("button", {onClick: this.submitComment, type: "button", className: "btn btn-default submit-button " + disabled}, 
                     "Submit"
+                ), 
+                React.createElement("label", {className: "private-checkbox"}, 
+                    React.createElement("input", {
+                      type: "checkbox", 
+                      checked: !this.state.commentIsPublic, 
+                      onChange: this.togglePrivateComment}
+                    ), 
+                    "Private Comment"
                 )
             )
         )
