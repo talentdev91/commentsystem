@@ -116,7 +116,7 @@ var Comments = React.createClass({displayName: "Comments",
         var textarea = (this.state.loggedInStatus) ? this.textarea() : (
             React.createElement("h3", {className: "comment-box-holder main"}, "Please login with Facebook to comment.")
         );
-        var authorImage =  "http://graph.facebook.com/v2.3/" + discussion.author_id + "/picture"
+        var authorImage =  "http://graph.facebook.com/v2.2/" + discussion.author_id + "/picture"
         var time = moment(discussion.datetime).fromNow();
         return (
             React.createElement("div", {className: "container"}, 
@@ -170,7 +170,7 @@ var NavBar = React.createClass({displayName: "NavBar",
                     firstName: user.first_name,
                     lastName: user.last_name,
                     loggedInStatus: user.id,
-                    userPicture: "http://graph.facebook.com/v2.3/" + user.id + "/picture"
+                    userPicture: "http://graph.facebook.com/v2.2/" + user.id + "/picture"
                 });
                 var userInfo = React.findDOMNode(this.refs.userInfo);
                 $(userInfo).velocity("fadeIn");
@@ -349,7 +349,7 @@ var Comment = React.createClass({displayName: "Comment",
             )
         );
         var time = moment(this.props.data.datetime).fromNow();
-        var authorProfilePicture = "http://graph.facebook.com/v2.3/" + this.props.data.author_id + "/picture";
+        var authorProfilePicture = "http://graph.facebook.com/v2.2/" + this.props.data.author_id + "/picture";
         return (
             React.createElement("div", null, 
                 React.createElement("div", {className: "profile-picture"}, 
