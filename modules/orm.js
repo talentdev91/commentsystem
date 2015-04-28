@@ -49,6 +49,7 @@ module.exports.getDiscussion = function (discussionID, callback) {
 					delete row.title;
 					row.public = row.public === 1;
 					row.deleted = row.deleted === 1;
+					row.updated = row.updated === 1;
 					if(row.deleted) {
 						delete row.author;
 						delete row.author_id;
@@ -115,6 +116,27 @@ module.exports.addComment = function (parentID, commentObject, callback) {
 			$author: commentObject.author, 
 			$author_id: commentObject.author_id, 
 			$public: (commentObject.public === 'true') ? 1 : 0
+		}, function() {
+			callback({success:true});
+			//TODO validate success
+		});
+
+	});
+
+	db.close();
+
+}
+
+module.exports.updateComment = function (discussionID, commentObject, callback) {
+	var db = new sqlite3.Database(database);
+	
+	console.log(commentObject);
+
+	db.serialize(function() {
+
+		db.run("UPDATE discussions SET discussion = $discussion, datetime = strftime('%Y-%m-%dT%H:%M:%fZ','now','localtime'), updated = 1 WHERE id = $id", {
+			$id: discussionID, 
+			$discussion: commentObject.discussion, 
 		}, function() {
 			callback({success:true});
 			//TODO validate success

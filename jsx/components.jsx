@@ -35,7 +35,7 @@ var Comments = React.createClass({
     },
 
     componentDidMount: function () {
-        this.intervalID = setInterval(this.loadServerData, 5000)
+        //this.intervalID = setInterval(this.loadServerData, 5000)
     },
 
     componentWillMount: function() {
@@ -227,7 +227,9 @@ var Comment = React.createClass({
             comments: this.props.data.comments,
             deleted: this.props.data.deleted,
             commentIsPublic: true,
-            disabledSubmitButton: true
+            disabledSubmitButton: true,
+            discussion: this.props.data.discussion,
+            editable: false
         }
     },
     togglePrivateComment: function() {
@@ -295,6 +297,42 @@ var Comment = React.createClass({
             });
         }
     },
+    editComment: function(event) {
+        event.preventDefault();
+        this.commentBackupForEditing = this.state.discussion;
+        this.setState({
+            editable: true
+        });
+    },
+    submitEditedComment: function(updatedComment) {
+        event.preventDefault();
+        this.commentBackupForEditing = "";
+        this.setState({
+            editable: false,
+            discussion: updatedComment
+        });
+        $.post('/updateComment/' + this.props.data.id, {
+            discussion: updatedComment,
+            author_id: this.props.loggedIn
+        }, function(result) {
+            console.log(result);
+            //TODO catch errors
+        });
+    },
+    updateEditingComment: function(newDiscussion) {
+        event.preventDefault();
+        this.setState({
+            discussion: newDiscussion
+        });
+    },
+    cancelEditedComment: function(event) {
+        event.preventDefault();
+        this.setState({
+            discussion: this.commentBackupForEditing,
+            editable: false
+        });
+    },
+    commentBackupForEditing: "",
     componentDidUpdate: function() {
         var textareaHolder = React.findDOMNode(this.refs.textareaHolder);
         if(textareaHolder && this.textAreaOpen === false) {
@@ -337,19 +375,26 @@ var Comment = React.createClass({
             </div>
         )
     },
+    onChangeDiscussion: function() {
+        //console.log("discussion changed");
+    },
     discussion: function() {
         var textarea = (this.state.openTextArea === true) ? this.textarea() : "";
-        var deleteControl = (parseInt(this.props.loggedIn) !== parseInt(this.props.data.author_id)) ? "" : (
-            <a className="delete" href="#" onClick={this.deleteComment}>delete</a>
+        var editAndDeleteControl = (parseInt(this.props.loggedIn) !== parseInt(this.props.data.author_id)) ? "" : (
+            <span>
+                <a className="edit" href="#" onClick={this.editComment}>edit</a>
+                <a className="delete" href="#" onClick={this.deleteComment}>delete</a>
+            </span>
         );
-        var loggedInControls = (!this.props.loggedIn) ? "" : (
+        var loggedInControls = (!this.props.loggedIn || this.state.editable) ? "" : (
             <span>
                 <a className="comment" href="#" onClick={this.replyToggle}>reply</a>
-                {deleteControl}
+                {editAndDeleteControl}
             </span>
         );
         var time = moment(this.props.data.datetime).fromNow();
         var authorProfilePicture = "http://graph.facebook.com/v2.2/" + this.props.data.author_id + "/picture";
+        var updated = (this.props.data.updated) ? "Updated" : "";
         return (
             <div>
                 <div className="profile-picture">
@@ -358,10 +403,16 @@ var Comment = React.createClass({
                 <div className="comment-text">
                     <span className="meta-data">
                         <span className="author">{this.props.data.author}</span>
-                        <span className="time">{time}</span>
+                        <span className="time">{updated} {time}</span>
                         {loggedInControls}
                     </span>
-                    <div className="innerHTML" dangerouslySetInnerHTML={{__html: this.props.data.discussion}} />
+                    <CommentText 
+                        html={this.state.discussion} 
+                        editable={this.state.editable} 
+                        className="innerHTML" 
+                        submitEditedComment={this.submitEditedComment}
+                        updateEditingComment={this.updateEditingComment} 
+                        cancelEditedComment={this.cancelEditedComment} />
                     {textarea}
                 </div>
             </div>
@@ -395,8 +446,67 @@ var Comment = React.createClass({
     }
 });
 
+var CommentText = React.createClass({
+    render: function(){
+        var className;
+        var submitButton;
+        if(this.props.editable) {
+            className = this.props.className + " editable";
+            submitButton = (
+                <div>
+                    <button onClick={this.submitEditedComment} type="button" className="btn btn-default submit-button editable">
+                        Submit
+                    </button>
+                    <button onClick={this.props.cancelEditedComment} type="button" className="btn btn-default submit-button editable">
+                        Cancel
+                    </button>
+                </div>
+            )
+        } else {
+            className = this.props.className;
+            submitButton = "";
+        }
+        return (
+            <div>
+                <div 
+                    ref="text"
+                    dangerouslySetInnerHTML={{__html: this.props.html}}
+                    onInput={this.emitChange} 
+                    className={className}
+                    contentEditable={this.props.editable}>
+                </div>
+                {submitButton}
+            </div>
+        );
+    },
+    shouldComponentUpdate: function(nextProps){
+        return nextProps.editable !== this.props.editable || nextProps.html !== React.findDOMNode(this.refs.text).innerHTML;
+    },
+    submitEditedComment: function(event) {
+        var html = React.findDOMNode(this.refs.text).innerHTML;
+        this.props.submitEditedComment(html);
+    },
+    componentWillUpdate: function(nextProps) {
+        if (nextProps.html !== React.findDOMNode(this.refs.text).innerHTML) {
+            React.findDOMNode(this.refs.text).innerHTML = nextProps.html;
+        }
+    },
+    emitChange: function(){
+        var html = React.findDOMNode(this.refs.text).innerHTML;
+        if (this.props.onChange && html !== this.lastHtml) {
+
+            this.props.onChange({
+                target: {
+                    value: html
+                }
+            });
+        }
+        this.lastHtml = html;
+    }
+});
+
 if (isNode) {
-    exports.Comments = Comments
+    exports.Comments = Comments;
 } else {
-    React.render(<Comments commentData={staticContent} />, document.getElementById('react-root'))
+    React.render(<Comments commentData={staticContent} />, document.getElementById('react-root'));
 }

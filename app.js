@@ -61,6 +61,12 @@ app.get('/deleteComment/:commentID', function(req, res) {
     });
 });
 
+app.post('/updateComment/:commentID', function(req, res) {
+    orm.updateComment(req.params.commentID, req.body, function(data) {
+        res.json(data);
+    });
+});
+
 app.post('/addComment/:parentID', function(req, res) {
     console.log(req.params.parentID);
     orm.addComment(req.params.parentID, req.body, function(data) {
